@@ -90,5 +90,5 @@ btnClear.addEventListener('click', () => {
     goalInput.value = '';
     periodSelect.value = '1';
     resultBox.classList.add('hidden');
-    alert("ล้างข้อมูลเก่าเรียบรक्षी!");
+    alert("ล้างข้อมูลเรียบร้อย");
 });
