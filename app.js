@@ -2,7 +2,7 @@ const SUPABASE_URL = 'https://ajqxbaovaokxxvylxkgm.supabase.co';
 
 const SUPABASE_KEY = 'sb_publishable_XsqaoStpuCuATFv2Vc7tEA_bsKeapqA';
 
-const supabase = window.supabase.createClient(
+const supabaseClient = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
@@ -102,7 +102,7 @@ async function saveToSupabase() {
     const percentage = (savePerMonth / income) * 100;
 
     // ส่งข้อมูลไป Supabase
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
         .from('savings')
         .insert([
             {
@@ -148,7 +148,7 @@ async function saveToSupabase() {
 
 async function loadLastData() {
 
-    const { data, error } = await supabase
+    const { data, error } = await supabaseClient
         .from('savings')
         .select('income, goal, period')
         .order('created_at', { ascending: false })
@@ -165,7 +165,6 @@ async function loadLastData() {
         return;
     }
 
-    // ถ้ามีข้อมูลใน Supabase
     if (data && data.length > 0) {
 
         const latest = data[0];
@@ -179,7 +178,6 @@ async function loadLastData() {
         return;
     }
 
-    // ถ้า Supabase ยังไม่มีข้อมูล
     loadLocalData();
 }
 
