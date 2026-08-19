@@ -1,4 +1,22 @@
-// อ้างอิง Element จาก HTML
+```javascript
+// ===============================
+// SUPABASE CONFIG
+// ===============================
+
+const SUPABASE_URL = 'https://ajqxbaovaokxxvylxkgm.supabase.co';
+
+const SUPABASE_KEY = 'sb_publishable_XsqaoStpuCuATFv2Vc7tEA_bsKeapqA';
+
+const supabase = window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+
+// ===============================
+// GET ELEMENTS
+// ===============================
+
 const incomeInput = document.getElementById('income');
 const goalInput = document.getElementById('goal');
 const periodSelect = document.getElementById('period');
@@ -12,21 +30,13 @@ const savePerMonthText = document.getElementById('save-per-month');
 const savePercentageText = document.getElementById('save-percentage');
 const statusBadge = document.getElementById('status-badge');
 
-// โหลดข้อมูลเก่าจาก Local Storage เมื่อเปิดหน้าเว็บ (ถ้ามี)
-window.addEventListener('DOMContentLoaded', () => {
-    const savedData = localStorage.getItem('financialData');
-    if (savedData) {
-        const data = JSON.parse(savedData);
-        incomeInput.value = data.income;
-        goalInput.value = data.goal;
-        periodSelect.value = data.period;
-        calculateSavings(); // คำนวณแสดงผลทันที
-    }
-});
 
-// ฟังก์ชันคำนวณผล
+// ===============================
+// CALCULATE SAVINGS
+// ===============================
+
 function calculateSavings() {
-    // แปลงค่าจาก Input เป็นตัวเลข (ดักจับค่าว่างให้เป็น 0)
+
     const income = parseFloat(incomeInput.value) || 0;
     const goal = parseFloat(goalInput.value) || 0;
     const period = parseInt(periodSelect.value) || 1;
@@ -36,33 +46,54 @@ function calculateSavings() {
         return;
     }
 
-    // คำนวณเงินออมต่อเดือนและเปอร์เซ็นต์
+    // เงินที่ต้องออมต่อเดือน
     const savePerMonth = goal / period;
+
+    // เปอร์เซ็นต์ของรายได้ที่ต้องออม
     const percentage = (savePerMonth / income) * 100;
 
-    // แสดงค่าบนหน้าเว็บ
+    // แสดงผล
     savePerMonthText.innerText = savePerMonth.toFixed(2);
     savePercentageText.innerText = percentage.toFixed(1);
 
-    // ล้าง Class เก่าออกก่อน
+    // ล้าง class เดิม
     resultBox.className = "result-box";
-    
-    // Logic (if/else) ประเมินความยากง่ายตามสัดส่วนเงินออมต่อรายได้
+
+    // ประเมินระดับการออม
     if (percentage <= 10) {
+
         resultBox.classList.add('easy');
-        statusBadge.innerText = "ระดับ: ออมสบายๆ ชิลมาก 🎉";
+
+        statusBadge.innerText =
+            "ระดับ: ออมสบายๆ ชิลมาก 🎉";
+
         statusBadge.style.color = "#27ae60";
+
     } else if (percentage <= 30) {
+
         resultBox.classList.add('medium');
-        statusBadge.innerText = "ระดับ: กำลังดีตามมาตรฐาน 👍";
+
+        statusBadge.innerText =
+            "ระดับ: กำลังดีตามมาตรฐาน 👍";
+
         statusBadge.style.color = "#d35400";
+
     } else if (percentage <= 50) {
+
         resultBox.classList.add('hard');
-        statusBadge.innerText = "ระดับ: ตึงมือ ต้องประหยัดหน่อยนะ ⚖️";
+
+        statusBadge.innerText =
+            "ระดับ: ตึงมือ ต้องประหยัดหน่อยนะ ⚖️";
+
         statusBadge.style.color = "#e67e22";
+
     } else {
+
         resultBox.classList.add('impossible');
-        statusBadge.innerText = "ระดับ: เป็นไปได้ยาก/เสี่ยงเกินไป ⚠️";
+
+        statusBadge.innerText =
+            "ระดับ: เป็นไปได้ยาก/เสี่ยงเกินไป ⚠️";
+
         statusBadge.style.color = "#c0392b";
     }
 
@@ -70,25 +101,198 @@ function calculateSavings() {
     resultBox.classList.remove('hidden');
 }
 
-// Event Listeners สำหรับปุ่มต่างๆ
-btnCalc.addEventListener('click', calculateSavings);
 
-btnSave.addEventListener('click', () => {
-    const dataToSave = {
-        income: incomeInput.value,
-        goal: goalInput.value,
-        period: periodSelect.value
+// ===============================
+// SAVE TO SUPABASE
+// ===============================
+
+async function saveToSupabase() {
+
+    const income = parseFloat(incomeInput.value) || 0;
+    const goal = parseFloat(goalInput.value) || 0;
+    const period = parseInt(periodSelect.value) || 1;
+
+    // ตรวจสอบข้อมูล
+    if (income <= 0 || goal <= 0) {
+        alert("กรุณากรอกข้อมูลรายได้และเป้าหมายก่อนบันทึก");
+        return;
+    }
+
+    // คำนวณข้อมูล
+    const savePerMonth = goal / period;
+    const percentage = (savePerMonth / income) * 100;
+
+    // ส่งข้อมูลไป Supabase
+    const { data, error } = await supabase
+        .from('savings')
+        .insert([
+            {
+                income: income,
+                goal: goal,
+                period: period,
+                save_per_month: savePerMonth,
+                percentage: percentage
+            }
+        ])
+        .select();
+
+    // ถ้าเกิด Error
+    if (error) {
+
+        console.error("Supabase Error:", error);
+
+        alert(
+            "บันทึกข้อมูลไม่สำเร็จ\n\n" +
+            error.message
+        );
+
+        return;
+    }
+
+    // สำเร็จ
+    console.log("Saved:", data);
+
+    // เก็บข้อมูลล่าสุดไว้ในเครื่องด้วย
+    const localData = {
+        income: income,
+        goal: goal,
+        period: period
     };
-    // บันทึกลง Local Storage ในรูปแบบ String JSON
-    localStorage.setItem('financialData', JSON.stringify(dataToSave));
-    alert("บันทึกข้อมูลเรียบร้อยแล้ว!");
-});
 
-btnClear.addEventListener('click', () => {
-    localStorage.removeItem('financialData');
+    localStorage.setItem(
+        'financialData',
+        JSON.stringify(localData)
+    );
+
+    alert("บันทึกข้อมูลลง Supabase เรียบร้อยแล้ว! ✅");
+}
+
+
+// ===============================
+// LOAD LAST DATA
+// ===============================
+
+async function loadLastData() {
+
+    const { data, error } = await supabase
+        .from('savings')
+        .select('income, goal, period')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+    if (error) {
+
+        console.error("Load Supabase Error:", error);
+
+        // ถ้า Supabase โหลดไม่ได้
+        // ลองโหลดจาก Local Storage แทน
+        loadLocalData();
+
+        return;
+    }
+
+    // ถ้ามีข้อมูลใน Supabase
+    if (data && data.length > 0) {
+
+        const latest = data[0];
+
+        incomeInput.value = latest.income;
+        goalInput.value = latest.goal;
+        periodSelect.value = latest.period;
+
+        calculateSavings();
+
+        return;
+    }
+
+    // ถ้า Supabase ยังไม่มีข้อมูล
+    loadLocalData();
+}
+
+
+// ===============================
+// LOAD LOCAL STORAGE
+// ===============================
+
+function loadLocalData() {
+
+    const savedData = localStorage.getItem('financialData');
+
+    if (!savedData) {
+        return;
+    }
+
+    try {
+
+        const data = JSON.parse(savedData);
+
+        incomeInput.value = data.income || '';
+        goalInput.value = data.goal || '';
+        periodSelect.value = data.period || '1';
+
+        calculateSavings();
+
+    } catch (error) {
+
+        console.error(
+            "Local Storage Error:",
+            error
+        );
+
+    }
+}
+
+
+// ===============================
+// CLEAR DATA
+// ===============================
+
+async function clearData() {
+
+    // ล้างข้อมูลจากหน้าจอ
     incomeInput.value = '';
     goalInput.value = '';
     periodSelect.value = '1';
+
     resultBox.classList.add('hidden');
-    alert("ล้างข้อมูลเรียบร้อย");
-});
+
+    // ล้าง Local Storage
+    localStorage.removeItem('financialData');
+
+    alert("ล้างข้อมูลจากหน้าเว็บเรียบร้อยแล้ว");
+}
+
+
+// ===============================
+// EVENT LISTENERS
+// ===============================
+
+btnCalc.addEventListener(
+    'click',
+    calculateSavings
+);
+
+btnSave.addEventListener(
+    'click',
+    saveToSupabase
+);
+
+btnClear.addEventListener(
+    'click',
+    clearData
+);
+
+
+// ===============================
+// WHEN PAGE LOADS
+// ===============================
+
+window.addEventListener(
+    'DOMContentLoaded',
+    () => {
+
+        loadLastData();
+
+    }
+);
+```
