@@ -6,12 +6,6 @@ const supabase = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
-
-
-// ===============================
-// GET ELEMENTS
-// ===============================
-
 const incomeInput = document.getElementById('income');
 const goalInput = document.getElementById('goal');
 const periodSelect = document.getElementById('period');
@@ -24,11 +18,6 @@ const resultBox = document.getElementById('result-box');
 const savePerMonthText = document.getElementById('save-per-month');
 const savePercentageText = document.getElementById('save-percentage');
 const statusBadge = document.getElementById('status-badge');
-
-
-// ===============================
-// CALCULATE SAVINGS
-// ===============================
 
 function calculateSavings() {
 
@@ -96,11 +85,6 @@ function calculateSavings() {
     resultBox.classList.remove('hidden');
 }
 
-
-// ===============================
-// SAVE TO SUPABASE
-// ===============================
-
 async function saveToSupabase() {
 
     const income = parseFloat(incomeInput.value) || 0;
@@ -162,11 +146,6 @@ async function saveToSupabase() {
     alert("บันทึกข้อมูลลง Supabase เรียบร้อยแล้ว! ✅");
 }
 
-
-// ===============================
-// LOAD LAST DATA
-// ===============================
-
 async function loadLastData() {
 
     const { data, error } = await supabase
@@ -204,11 +183,6 @@ async function loadLastData() {
     loadLocalData();
 }
 
-
-// ===============================
-// LOAD LOCAL STORAGE
-// ===============================
-
 function loadLocalData() {
 
     const savedData = localStorage.getItem('financialData');
@@ -237,11 +211,6 @@ function loadLocalData() {
     }
 }
 
-
-// ===============================
-// CLEAR DATA
-// ===============================
-
 async function clearData() {
 
     // ล้างข้อมูลจากหน้าจอ
@@ -257,11 +226,6 @@ async function clearData() {
     alert("ล้างข้อมูลจากหน้าเว็บเรียบร้อยแล้ว");
 }
 
-
-// ===============================
-// EVENT LISTENERS
-// ===============================
-
 btnCalc.addEventListener(
     'click',
     calculateSavings
@@ -276,11 +240,6 @@ btnClear.addEventListener(
     'click',
     clearData
 );
-
-
-// ===============================
-// WHEN PAGE LOADS
-// ===============================
 
 window.addEventListener(
     'DOMContentLoaded',
