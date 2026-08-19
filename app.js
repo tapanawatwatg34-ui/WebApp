@@ -1,8 +1,3 @@
-```javascript
-// ===============================
-// SUPABASE CONFIG
-// ===============================
-
 const SUPABASE_URL = 'https://ajqxbaovaokxxvylxkgm.supabase.co';
 
 const SUPABASE_KEY = 'sb_publishable_XsqaoStpuCuATFv2Vc7tEA_bsKeapqA';
